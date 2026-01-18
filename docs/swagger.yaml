@@ -1,0 +1,199 @@
+openapi: 3.0.0
+info:
+  title: Movie Match API
+  version: 1.0.0
+  description: API de películas con IA integrada
+
+servers:
+  - url: http://localhost:3000
+    description: Desarrollo local
+  - url: https://movie-match-api.onrender.com
+    description: Producción
+
+paths:
+  /health:
+    get:
+      summary: Health check del servidor
+      description: Verifica el estado del servidor y retorna información de uptime
+      responses:
+        '200':
+          description: Servidor funcionando correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2026-01-15T20:00:00.000Z"
+                  uptime:
+                    type: number
+                    description: Tiempo en segundos desde que inició el servidor
+                    example: 3600.5
+
+  /movies:
+    get:
+      summary: Obtener todas las películas
+      description: Retorna lista de películas con filtros opcionales
+      parameters:
+        - name: genre
+          in: query
+          schema:
+            type: string
+          description: Filtrar por género
+        - name: minRating
+          in: query
+          schema:
+            type: number
+          description: Rating mínimo
+      responses:
+        '200':
+          description: Lista de películas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                  count:
+                    type: integer
+
+    post:
+      summary: Crear nueva película
+      description: Agrega una nueva película a la colección
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - year
+                - genre
+                - director
+                - rating
+              properties:
+                title:
+                  type: string
+                  example: "The Matrix Resurrections"
+                year:
+                  type: integer
+                  example: 2021
+                genre:
+                  type: string
+                  example: "Sci-Fi"
+                director:
+                  type: string
+                  example: "Lana Wachowski"
+                rating:
+                  type: number
+                  format: float
+                  example: 7.5
+                description:
+                  type: string
+                  example: "Neo regresa a la Matrix para salvar a Trinity..."
+      responses:
+        '201':
+          description: Película creada exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 16
+                      title:
+                        type: string
+                      year:
+                        type: integer
+                      genre:
+                        type: string
+                      director:
+                        type: string
+                      rating:
+                        type: number
+                      description:
+                        type: string
+        '400':
+          description: Datos inválidos
+
+  /movies/discover:
+    get:
+      summary: Descubrir películas con IA
+      description: Retorna películas enriquecidas con anécdotas y datos curiosos generados por IA
+      responses:
+        '200':
+          description: Películas con contenido de IA
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  count:
+                    type: integer
+                    example: 10
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          example: 14
+                        title:
+                          type: string
+                          example: "Back to the Future"
+                        year:
+                          type: integer
+                          example: 1985
+                        genre:
+                          type: string
+                          example: "Sci-Fi"
+                        director:
+                          type: string
+                          example: "Robert Zemeckis"
+                        rating:
+                          type: number
+                          format: float
+                          example: 8.5
+                        description:
+                          type: string
+                          example: "Marty McFly, a 17-year-old high school student, is accidentally sent 30 years into the past..."
+                        ai_enriched:
+                          type: string
+                          nullable: true
+                          example: "Michael J. Fox no fue el primer Marty McFly. Eric Stoltz filmó 5 semanas antes de ser reemplazado por motivos creativos."
+                          description: "Anécdota curiosa sobre la película generada por IA"
+
+  /movies/{id}:
+    get:
+      summary: Obtener película por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Película encontrada
+        '404':
+          description: Película no encontrada

@@ -1,5 +1,5 @@
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const MODEL = 'mistralai/mistral-7b-instruct:free';
+const MODEL = 'meta-llama/llama-3.2-3b-instruct:free';
 
 function buildPrompt(movies) {
   const movieList = movies
@@ -14,7 +14,7 @@ Para cada película, proporciona UNA anécdota breve y curiosa (máximo 2 línea
 [
   {
     "title": "Nombre de la película",
-    "anecdote": "La anécdota aquí"
+    "anecdota": "La anécdota aquí"
   }
 ]
 
@@ -68,7 +68,7 @@ export async function enrichMoviesWithAI(movies) {
       const anecdote = anecdotes.find(a => a.title === movie.title);
       return {
         ...movie,
-        ai_enriched: anecdote ? anecdote.anecdote : null
+        ai_enriched: anecdote ? anecdote.anecdota : null
       };
     });
   } catch (error) {
