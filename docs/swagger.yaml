@@ -7,7 +7,7 @@ info:
 servers:
   - url: http://localhost:3000
     description: Desarrollo local
-  - url: https://movie-match-api.onrender.com
+  - url: https://movie-match-api-44vf.onrender.com
     description: Producción
 
 paths:

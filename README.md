@@ -16,8 +16,8 @@ Una API completa para explorar películas clásicas del cine con enriquecimiento
 
 ## 🚀 Demo en Vivo
 
-- **API en producción:** https://movie-match-api.onrender.com
-- **Documentación Swagger:** https://movie-match-api.onrender.com/docs
+- **API en producción:** https://movie-match-api-44vf.onrender.com
+- **Documentación Swagger:** https://movie-match-api-44vf.onrender.com/docs
 - **Repositorio GitHub:** https://github.com/JGIL1982/movie-match-api
 
 ## 🛠️ Tecnologías
@@ -194,15 +194,15 @@ curl http://localhost:3000/movies/discover
 3. **Variables de entorno:**
    - `OPENROUTER_API_KEY`: Tu API key de OpenRouter
 
-### Actualizar URL en Swagger:
+### URLs Configuradas:
 
-Después del deploy, actualiza `docs/swagger.yaml`:
+El archivo `docs/swagger.yaml` está configurado con:
 
 ```yaml
 servers:
   - url: http://localhost:3000
     description: Desarrollo local
-  - url: https://TU-APP.onrender.com
+  - url: https://movie-match-api-44vf.onrender.com
     description: Producción
 ```
 
