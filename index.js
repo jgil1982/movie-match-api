@@ -4,6 +4,7 @@ import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import moviesRouter from './routes/movies.js';
+import reviewsRouter from './routes/reviews.js';
 import { logger } from './middlewares/logger.js';
 import { responseTime } from './middlewares/responseTime.js';
 import { errorHandler } from './middlewares/errorHandler.js';
@@ -30,6 +31,7 @@ app.get('/health', (req, res) => {
 });
 
 app.use('/movies', moviesRouter);
+app.use(reviewsRouter);
 
 app.use(notFound);
 app.use(errorHandler);
