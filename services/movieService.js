@@ -1,24 +1,56 @@
-import { movies } from '../data/movies.js';
+import prisma from '../lib/prisma.js';
 
-export function getAllMovies(filters = {}) {
-  let result = [...movies];
+export async function getAllMovies(filters = {}) {
+  const where = {};
 
-  if (filters.genre) {
-    result = result.filter(m => m.genre.toLowerCase() === filters.genre.toLowerCase());
+  if (filters.year) {
+    where.year = parseInt(filters.year);
   }
 
   if (filters.minRating) {
-    result = result.filter(m => m.rating >= parseFloat(filters.minRating));
+    where.rating = { gte: parseFloat(filters.minRating) };
   }
 
-  return result;
+  return prisma.movie.findMany({ where });
 }
 
-export function getMovieById(id) {
-  return movies.find(m => m.id === parseInt(id));
+export async function getMovieById(id) {
+  return prisma.movie.findUnique({
+    where: { id: parseInt(id) }
+  });
 }
 
-export function getRandomMovies(count = 10) {
-  const shuffled = [...movies].sort(() => 0.5 - Math.random());
+export async function createMovie(data) {
+  return prisma.movie.create({
+    data: {
+      title: data.title,
+      year: data.year,
+      rating: data.rating,
+      poster: data.poster || null
+    }
+  });
+}
+
+export async function updateMovie(id, data) {
+  return prisma.movie.update({
+    where: { id: parseInt(id) },
+    data: {
+      title: data.title,
+      year: data.year,
+      rating: data.rating,
+      poster: data.poster
+    }
+  });
+}
+
+export async function deleteMovie(id) {
+  return prisma.movie.delete({
+    where: { id: parseInt(id) }
+  });
+}
+
+export async function getRandomMovies(count = 10) {
+  const movies = await prisma.movie.findMany();
+  const shuffled = movies.sort(() => 0.5 - Math.random());
   return shuffled.slice(0, Math.min(count, movies.length));
 }

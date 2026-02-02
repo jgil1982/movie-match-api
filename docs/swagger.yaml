@@ -40,11 +40,11 @@ paths:
       summary: Obtener todas las películas
       description: Retorna lista de películas con filtros opcionales
       parameters:
-        - name: genre
+        - name: year
           in: query
           schema:
-            type: string
-          description: Filtrar por género
+            type: integer
+          description: Filtrar por año
         - name: minRating
           in: query
           schema:
@@ -56,81 +56,26 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                  data:
-                    type: array
-                  count:
-                    type: integer
+                $ref: '#/components/schemas/MoviesResponse'
 
     post:
       summary: Crear nueva película
-      description: Agrega una nueva película a la colección
+      description: Agrega una nueva película a la base de datos
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              required:
-                - title
-                - year
-                - genre
-                - director
-                - rating
-              properties:
-                title:
-                  type: string
-                  example: "The Matrix Resurrections"
-                year:
-                  type: integer
-                  example: 2021
-                genre:
-                  type: string
-                  example: "Sci-Fi"
-                director:
-                  type: string
-                  example: "Lana Wachowski"
-                rating:
-                  type: number
-                  format: float
-                  example: 7.5
-                description:
-                  type: string
-                  example: "Neo regresa a la Matrix para salvar a Trinity..."
+              $ref: '#/components/schemas/MovieInput'
       responses:
         '201':
           description: Película creada exitosamente
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
-                  data:
-                    type: object
-                    properties:
-                      id:
-                        type: integer
-                        example: 16
-                      title:
-                        type: string
-                      year:
-                        type: integer
-                      genre:
-                        type: string
-                      director:
-                        type: string
-                      rating:
-                        type: number
-                      description:
-                        type: string
-        '400':
-          description: Datos inválidos
+                $ref: '#/components/schemas/MovieResponse'
+        '500':
+          description: Error del servidor
 
   /movies/discover:
     get:
@@ -153,35 +98,14 @@ paths:
                   data:
                     type: array
                     items:
-                      type: object
-                      properties:
-                        id:
-                          type: integer
-                          example: 14
-                        title:
-                          type: string
-                          example: "Back to the Future"
-                        year:
-                          type: integer
-                          example: 1985
-                        genre:
-                          type: string
-                          example: "Sci-Fi"
-                        director:
-                          type: string
-                          example: "Robert Zemeckis"
-                        rating:
-                          type: number
-                          format: float
-                          example: 8.5
-                        description:
-                          type: string
-                          example: "Marty McFly, a 17-year-old high school student, is accidentally sent 30 years into the past..."
-                        ai_enriched:
-                          type: string
-                          nullable: true
-                          example: "Michael J. Fox no fue el primer Marty McFly. Eric Stoltz filmó 5 semanas antes de ser reemplazado por motivos creativos."
-                          description: "Anécdota curiosa sobre la película generada por IA"
+                      allOf:
+                        - $ref: '#/components/schemas/Movie'
+                        - type: object
+                          properties:
+                            ai_enriched:
+                              type: string
+                              nullable: true
+                              example: "Michael J. Fox no fue el primer Marty McFly."
 
   /movies/{id}:
     get:
@@ -195,5 +119,128 @@ paths:
       responses:
         '200':
           description: Película encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieResponse'
         '404':
           description: Película no encontrada
+
+    put:
+      summary: Actualizar película
+      description: Actualiza una película existente por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MovieInput'
+      responses:
+        '200':
+          description: Película actualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MovieResponse'
+        '404':
+          description: Película no encontrada
+
+    delete:
+      summary: Eliminar película
+      description: Elimina una película por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Película eliminada
+        '404':
+          description: Película no encontrada
+
+components:
+  schemas:
+    Movie:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        title:
+          type: string
+          example: "The Shawshank Redemption"
+        year:
+          type: integer
+          example: 1994
+        rating:
+          type: number
+          format: float
+          example: 9.3
+        poster:
+          type: string
+          nullable: true
+          example: "https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    MovieInput:
+      type: object
+      required:
+        - title
+        - year
+        - rating
+      properties:
+        title:
+          type: string
+          example: "Inception"
+        year:
+          type: integer
+          example: 2010
+        rating:
+          type: number
+          format: float
+          example: 8.8
+        poster:
+          type: string
+          nullable: true
+          example: "https://image.tmdb.org/t/p/w500/poster.jpg"
+
+    MovieResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Movie'
+        count:
+          type: integer
+          example: 1
+
+    MoviesResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Movie'
+        count:
+          type: integer
+          example: 10
