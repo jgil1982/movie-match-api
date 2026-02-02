@@ -23,7 +23,12 @@ export async function getAllMovies(filters = {}) {
 
 export async function getMovieById(id) {
   return prisma.movie.findUnique({
-    where: { id: parseInt(id) }
+    where: { id: parseInt(id) },
+    include: {
+      reviews: {
+        orderBy: { createdAt: 'desc' }
+      }
+    }
   });
 }
 

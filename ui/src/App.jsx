@@ -11,6 +11,11 @@ function App() {
   const [filters, setFilters] = useState({ genre: '', minRating: '' })
   const [submitting, setSubmitting] = useState(false)
 
+  // Estado para modal de reviews
+  const [selectedMovie, setSelectedMovie] = useState(null)
+  const [reviewForm, setReviewForm] = useState({ author: '', rating: '5', comment: '' })
+  const [submittingReview, setSubmittingReview] = useState(false)
+
   useEffect(() => {
     fetchGenres()
     fetchMovies()
@@ -48,6 +53,18 @@ function App() {
     }
   }
 
+  async function fetchMovieWithReviews(movieId) {
+    try {
+      const res = await fetch(`${API_URL}/${movieId}`)
+      const json = await res.json()
+      if (json.success && json.data.length > 0) {
+        setSelectedMovie(json.data[0])
+      }
+    } catch (error) {
+      console.error('Error fetching movie:', error)
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setSubmitting(true)
@@ -77,8 +94,44 @@ function App() {
     }
   }
 
+  async function handleSubmitReview(e) {
+    e.preventDefault()
+    if (!selectedMovie) return
+
+    setSubmittingReview(true)
+    try {
+      const res = await fetch(`${API_URL}/${selectedMovie.id}/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          author: reviewForm.author,
+          rating: parseInt(reviewForm.rating),
+          comment: reviewForm.comment
+        })
+      })
+
+      const json = await res.json()
+      if (json.success) {
+        // Actualizar reviews en el modal sin recargar
+        setSelectedMovie({
+          ...selectedMovie,
+          reviews: [json.data, ...(selectedMovie.reviews || [])]
+        })
+        setReviewForm({ author: '', rating: '5', comment: '' })
+      }
+    } catch (error) {
+      console.error('Error creating review:', error)
+    } finally {
+      setSubmittingReview(false)
+    }
+  }
+
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value })
+  }
+
+  function handleReviewChange(e) {
+    setReviewForm({ ...reviewForm, [e.target.name]: e.target.value })
   }
 
   function handleFilterChange(e) {
@@ -91,6 +144,19 @@ function App() {
     const emptyFilters = { genre: '', minRating: '' }
     setFilters(emptyFilters)
     fetchMovies(emptyFilters)
+  }
+
+  function openMovieModal(movie) {
+    fetchMovieWithReviews(movie.id)
+  }
+
+  function closeModal() {
+    setSelectedMovie(null)
+    setReviewForm({ author: '', rating: '5', comment: '' })
+  }
+
+  function renderStars(rating) {
+    return '★'.repeat(rating) + '☆'.repeat(5 - rating)
   }
 
   const hasActiveFilters = filters.genre || filters.minRating
@@ -193,7 +259,11 @@ function App() {
         ) : (
           <div className="movies-grid">
             {movies.map((movie) => (
-              <div key={movie.id} className="movie-card">
+              <div
+                key={movie.id}
+                className="movie-card"
+                onClick={() => openMovieModal(movie)}
+              >
                 <div className="poster">
                   {movie.poster ? (
                     <img src={movie.poster} alt={movie.title} />
@@ -212,6 +282,90 @@ function App() {
           </div>
         )}
       </section>
+
+      {/* Modal de detalle con reviews */}
+      {selectedMovie && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="modal-close" onClick={closeModal}>X</button>
+
+            <div className="modal-movie-info">
+              <div className="modal-poster">
+                {selectedMovie.poster ? (
+                  <img src={selectedMovie.poster} alt={selectedMovie.title} />
+                ) : (
+                  <div className="no-poster">Sin Poster</div>
+                )}
+              </div>
+              <div className="modal-details">
+                <h2>{selectedMovie.title}</h2>
+                <span className="genre-badge">{selectedMovie.genre}</span>
+                <p className="year">{selectedMovie.year}</p>
+                <p className="rating">Rating: {selectedMovie.rating}/10</p>
+              </div>
+            </div>
+
+            <div className="reviews-section">
+              <h3>Reviews ({selectedMovie.reviews?.length || 0})</h3>
+
+              {/* Formulario para agregar review */}
+              <form className="review-form" onSubmit={handleSubmitReview}>
+                <input
+                  type="text"
+                  name="author"
+                  placeholder="Tu nombre"
+                  value={reviewForm.author}
+                  onChange={handleReviewChange}
+                  required
+                />
+                <select
+                  name="rating"
+                  value={reviewForm.rating}
+                  onChange={handleReviewChange}
+                  required
+                >
+                  <option value="5">5 estrellas</option>
+                  <option value="4">4 estrellas</option>
+                  <option value="3">3 estrellas</option>
+                  <option value="2">2 estrellas</option>
+                  <option value="1">1 estrella</option>
+                </select>
+                <textarea
+                  name="comment"
+                  placeholder="Tu comentario..."
+                  value={reviewForm.comment}
+                  onChange={handleReviewChange}
+                  required
+                  rows="3"
+                />
+                <button type="submit" disabled={submittingReview}>
+                  {submittingReview ? 'Enviando...' : 'Agregar Review'}
+                </button>
+              </form>
+
+              {/* Lista de reviews */}
+              <div className="reviews-list">
+                {selectedMovie.reviews && selectedMovie.reviews.length > 0 ? (
+                  selectedMovie.reviews.map((review) => (
+                    <div key={review.id} className="review-card">
+                      <div className="review-header">
+                        <span className="review-author">{review.author}</span>
+                        <span className="review-stars">{renderStars(review.rating)}</span>
+                      </div>
+                      <p className="review-comment">{review.comment}</p>
+                      <span className="review-date">
+                        {new Date(review.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <p className="no-reviews">No hay reviews todavia. Se el primero en opinar!</p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
