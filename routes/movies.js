@@ -4,6 +4,7 @@ import * as movieController from '../controllers/movieController.js';
 const router = Router();
 
 router.get('/', movieController.getMovies);
+router.get('/genres', movieController.getGenres);
 router.get('/discover', movieController.discoverMovies);
 router.get('/:id', movieController.getMovieById);
 router.post('/', movieController.createMovie);
