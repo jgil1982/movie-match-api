@@ -13,11 +13,21 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Genre {
+  ACTION
+  COMEDY
+  DRAMA
+  HORROR
+  SCIFI
+  THRILLER
+}
+
 model Movie {
   id        Int      @id @default(autoincrement())
   title     String
   year      Int
   rating    Float
+  genre     Genre
   poster    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

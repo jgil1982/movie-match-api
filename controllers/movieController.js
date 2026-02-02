@@ -71,3 +71,8 @@ export async function discoverMovies(req, res) {
     sendError(res, 500, error.message);
   }
 }
+
+export function getGenres(req, res) {
+  const genres = movieService.getGenres();
+  res.json({ success: true, data: genres });
+}

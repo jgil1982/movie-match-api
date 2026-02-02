@@ -45,7 +45,8 @@ form {
   gap: 1rem;
 }
 
-input {
+input,
+select {
   flex: 1;
   min-width: 150px;
   padding: 0.75rem;
@@ -56,13 +57,19 @@ input {
   font-size: 1rem;
 }
 
-input:focus {
+input:focus,
+select:focus {
   outline: none;
   border-color: #4a9eff;
 }
 
 input::placeholder {
   color: #888;
+}
+
+select option {
+  background-color: #2a2a2a;
+  color: #e0e0e0;
 }
 
 button {
@@ -83,6 +90,33 @@ button:hover {
 button:disabled {
   background-color: #555;
   cursor: not-allowed;
+}
+
+.filters-section {
+  background-color: #1e1e1e;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+.filters-section h2 {
+  margin-bottom: 1rem;
+  color: #fff;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.clear-btn {
+  background-color: #dc3545;
+}
+
+.clear-btn:hover {
+  background-color: #c82333;
 }
 
 .movies-section h2 {
@@ -151,4 +185,16 @@ button:disabled {
   color: #ffc107;
   font-size: 0.9rem;
   margin-top: 0.25rem;
+}
+
+.genre-badge {
+  display: inline-block;
+  background-color: #4a9eff;
+  color: #fff;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
 }
