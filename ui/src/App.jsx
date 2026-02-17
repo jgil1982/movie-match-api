@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import './App.css'
+import Dashboard from './components/Dashboard'
 
 const API_URL = 'http://localhost:3000/movies'
 
 function App() {
+  const [currentView, setCurrentView] = useState('movies')
   const [movies, setMovies] = useState([])
   const [genres, setGenres] = useState([])
   const [loading, setLoading] = useState(true)
@@ -11,7 +13,6 @@ function App() {
   const [filters, setFilters] = useState({ genre: '', minRating: '' })
   const [submitting, setSubmitting] = useState(false)
 
-  // Estado para modal de reviews
   const [selectedMovie, setSelectedMovie] = useState(null)
   const [reviewForm, setReviewForm] = useState({ author: '', rating: '5', comment: '' })
   const [submittingReview, setSubmittingReview] = useState(false)
@@ -161,10 +162,37 @@ function App() {
 
   const hasActiveFilters = filters.genre || filters.minRating
 
+  if (currentView === 'dashboard') {
+    return (
+      <div className="app">
+        <header>
+          <h1>Movie Match</h1>
+          <nav style={{ marginTop: '1rem' }}>
+            <button onClick={() => setCurrentView('movies')} style={{ marginRight: '1rem' }}>
+              Películas
+            </button>
+            <button onClick={() => setCurrentView('dashboard')} style={{ background: '#2a9d8f' }}>
+              Dashboard
+            </button>
+          </nav>
+        </header>
+        <Dashboard />
+      </div>
+    );
+  }
+
   return (
     <div className="app">
       <header>
         <h1>Movie Match</h1>
+        <nav style={{ marginTop: '1rem' }}>
+          <button onClick={() => setCurrentView('movies')} style={{ background: '#2a9d8f', marginRight: '1rem' }}>
+            Películas
+          </button>
+          <button onClick={() => setCurrentView('dashboard')}>
+            Dashboard
+          </button>
+        </nav>
       </header>
 
       <section className="form-section">

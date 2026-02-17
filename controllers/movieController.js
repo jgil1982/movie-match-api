@@ -76,3 +76,51 @@ export function getGenres(req, res) {
   const genres = movieService.getGenres();
   res.json({ success: true, data: genres });
 }
+
+export async function search(req, res) {
+  try {
+    const result = await movieService.searchMovies(req.query);
+    res.json({ success: true, ...result });
+  } catch (error) {
+    sendError(res, 500, error.message);
+  }
+}
+
+export async function deleteMovieWithTransaction(req, res) {
+  try {
+    const result = await movieService.deleteMovieWithReviews(req.params.id);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    if (error.message === 'Película no encontrada') {
+      return sendError(res, 404, error.message);
+    }
+    sendError(res, 500, error.message);
+  }
+}
+
+export async function getMoviesWithoutReviews(req, res) {
+  try {
+    const movies = await movieService.getMoviesWithoutReviews();
+    sendSuccess(res, movies);
+  } catch (error) {
+    sendError(res, 500, error.message);
+  }
+}
+
+export async function getRecentMovies(req, res) {
+  try {
+    const movies = await movieService.getRecentMovies();
+    sendSuccess(res, movies);
+  } catch (error) {
+    sendError(res, 500, error.message);
+  }
+}
+
+export async function exportData(req, res) {
+  try {
+    const data = await movieService.exportData();
+    sendSuccess(res, data);
+  } catch (error) {
+    sendError(res, 500, error.message);
+  }
+}

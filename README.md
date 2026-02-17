@@ -1,18 +1,20 @@
 # Movie Match API
 
-> API REST de películas con arquitectura MVC, middlewares profesionales y documentación Swagger - Lab 12: Middleware, Documentación y Deploy
+> API REST completa con PostgreSQL, Prisma ORM, relaciones 1:N, dashboard de estadísticas y UI React - Lab 16: Dashboard + Advanced Queries
 
-Una API completa para explorar películas clásicas del cine con enriquecimiento de contenido mediante IA.
+Sistema completo de gestión de películas y reviews con estadísticas en tiempo real, búsqueda avanzada y transacciones atómicas.
 
 ## 🎬 Características
 
-- ✅ Arquitectura MVC (Model-View-Controller)
-- ✅ Middlewares personalizados (logging, manejo de errores, CORS)
-- ✅ Documentación interactiva con Swagger UI
-- ✅ Integración con OpenRouter para contenido enriquecido
-- ✅ Filtrado avanzado por género y rating
-- ✅ Manejo de errores centralizado
-- ✅ Deploy en producción (Render)
+- ✅ Base de datos PostgreSQL con Prisma ORM
+- ✅ Relaciones 1:N (Movie → Reviews) con Cascade
+- ✅ Dashboard de estadísticas con agregaciones
+- ✅ Búsqueda avanzada multi-filtro con paginación
+- ✅ Transacciones atómicas para operaciones críticas
+- ✅ UI React con dashboard de métricas
+- ✅ Enums y constraints de base de datos
+- ✅ Documentación interactiva Swagger
+- ✅ Deploy en producción (Render + Vercel)
 
 ## 🚀 Demo en Vivo
 
@@ -22,241 +24,378 @@ Una API completa para explorar películas clásicas del cine con enriquecimiento
 
 ## 🛠️ Tecnologías
 
+### Backend
 - **Node.js** - Entorno de ejecución
 - **Express.js** - Framework web
+- **Prisma ORM** - ORM para PostgreSQL
+- **PostgreSQL** - Base de datos relacional
 - **Swagger UI** - Documentación interactiva
-- **OpenRouter** - Enriquecimiento con IA
-- **CORS** - Cross-Origin Resource Sharing
-- **dotenv** - Gestión de variables de entorno
+
+### Frontend
+- **React** - Framework UI
+- **Vite** - Build tool
+- **CSS3** - Estilos
 
 ## 📦 Instalación Local
 
 ### Prerrequisitos
 - Node.js v18 o superior
 - npm
-- Cuenta en OpenRouter (opcional, para enriquecimiento con IA)
+- PostgreSQL (Neon, Supabase, Railway, o local)
 
 ### Pasos
 
-1. **Clonar el repositorio:**
+**1. Clonar el repositorio:**
 ```bash
 git clone https://github.com/JGIL1982/movie-match-api.git
 cd movie-match-api
 ```
 
-2. **Instalar dependencias:**
+**2. Instalar dependencias:**
 ```bash
 npm install
+cd ui && npm install && cd ..
 ```
 
-3. **Configurar variables de entorno:**
+**3. Configurar variables de entorno:**
 ```bash
-# Copiar el archivo de ejemplo
 cp .env.example .env
-
-# Editar .env y agregar tu API key de OpenRouter
-# PORT=3000
-# OPENROUTER_API_KEY=tu-api-key-real-aqui
 ```
 
-4. **Iniciar el servidor:**
-```bash
-# Modo producción
-npm start
+Editar `.env` con tu configuración:
+```env
+PORT=3000
+DATABASE_URL="postgresql://user:password@host:port/database?sslmode=require"
+OPENROUTER_API_KEY=tu-api-key-opcional
+```
 
-# Modo desarrollo (auto-reload)
+**4. Configurar base de datos:**
+```bash
+npx prisma migrate dev
+npx prisma db seed
+```
+
+**5. Iniciar servidor backend:**
+```bash
+npm start
+```
+
+**6. Iniciar UI frontend (en otra terminal):**
+```bash
+cd ui
 npm run dev
 ```
 
-5. **Acceder a la API:**
+**7. Acceder:**
 - API: http://localhost:3000
-- Documentación: http://localhost:3000/docs
+- Docs: http://localhost:3000/docs
+- UI: http://localhost:5173
 
 ## 🌐 Endpoints
 
-### GET `/movies`
+### Películas
+
+**GET `/movies`**
 Obtiene todas las películas con filtros opcionales.
-
-**Query params:**
-- `genre` (string): Filtrar por género (ej: "Sci-Fi", "Drama")
-- `minRating` (number): Rating mínimo (ej: 8.5)
-
-**Ejemplo:**
 ```bash
-curl http://localhost:3000/movies?genre=Sci-Fi&minRating=8.5
+curl "http://localhost:3000/movies?genre=SCIFI&minRating=8"
 ```
 
-### GET `/movies/:id`
-Obtiene una película específica por ID.
+**GET `/movies/search`**
+Búsqueda avanzada con múltiples filtros y paginación.
+```bash
+curl "http://localhost:3000/movies/search?q=matrix&genre=SCIFI&yearMin=1990&yearMax=2005&ratingMin=8&page=1&limit=10"
+```
 
-**Ejemplo:**
+**GET `/movies/:id`**
+Obtiene una película con sus reviews.
 ```bash
 curl http://localhost:3000/movies/1
 ```
 
-### GET `/movies/discover`
-Obtiene películas aleatorias enriquecidas con anécdotas generadas por IA.
-
-**Ejemplo:**
+**POST `/movies`**
+Crea una nueva película.
 ```bash
-curl http://localhost:3000/movies/discover
+curl -X POST http://localhost:3000/movies \
+  -H "Content-Type: application/json" \
+  -d '{"title":"Inception","year":2010,"rating":8.8,"genre":"SCIFI"}'
 ```
 
-**Respuesta:**
+**PUT `/movies/:id`**
+Actualiza una película.
+
+**DELETE `/movies/:id`**
+Elimina una película (y sus reviews por Cascade).
+
+**DELETE `/movies/:id/transaction`**
+Elimina película con transacción atómica explícita.
+
+### Reviews
+
+**POST `/movies/:id/reviews`**
+Agrega una review a una película.
+```bash
+curl -X POST http://localhost:3000/movies/1/reviews \
+  -H "Content-Type: application/json" \
+  -d '{"author":"Juan","rating":5,"comment":"Excelente película"}'
+```
+
+**DELETE `/movies/:movieId/reviews/:reviewId`**
+Elimina una review.
+
+### Estadísticas
+
+**GET `/stats`**
+Dashboard completo de estadísticas.
+```bash
+curl http://localhost:3000/stats
+```
+
+Respuesta:
 ```json
 {
   "success": true,
-  "data": [
-    {
-      "id": 1,
-      "title": "The Shawshank Redemption",
-      "year": 1994,
-      "genre": "Drama",
-      "director": "Frank Darabont",
-      "rating": 9.3,
-      "description": "Two imprisoned men bond over a number of years...",
-      "ai_enriched": "La película fue un fracaso en taquilla pero se convirtió en un éxito masivo en VHS y streaming."
-    }
-  ],
-  "count": 10
+  "data": {
+    "totalMovies": 10,
+    "totalReviews": 5,
+    "avgRating": 8.9,
+    "moviesByGenre": [
+      {"genre": "DRAMA", "count": 3, "avgRating": 9.1}
+    ],
+    "topRated": [...],
+    "mostReviewed": [...],
+    "recentReviews": [...]
+  }
 }
 ```
 
-### GET `/docs`
-Accede a la documentación interactiva de Swagger UI.
+### Logros Adicionales
+
+**GET `/movies/without-reviews`**
+Películas sin reviews.
+
+**GET `/movies/recent`**
+Películas agregadas en los últimos 7 días.
+
+**GET `/movies/export`**
+Exporta datos en formato CSV-friendly.
+
+**GET `/movies/discover`**
+Películas aleatorias con enriquecimiento IA.
+
+**GET `/movies/genres`**
+Lista de géneros disponibles.
 
 ## 📁 Estructura del Proyecto
 
 ```
 movie-match-api/
+├── prisma/
+│   ├── schema.prisma          # Schema de base de datos
+│   └── seed.js                # Datos iniciales
 ├── controllers/
-│   └── movieController.js       # Controladores de rutas
+│   ├── movieController.js     # Controladores de películas
+│   ├── reviewController.js    # Controladores de reviews
+│   └── statsController.js     # Controladores de estadísticas
 ├── services/
-│   ├── movieService.js          # Lógica de negocio
-│   └── aiService.js             # Integración OpenRouter
+│   ├── movieService.js        # Lógica de negocio
+│   ├── reviewService.js       # Lógica de reviews
+│   ├── statsService.js        # Agregaciones y estadísticas
+│   └── aiService.js           # Integración OpenRouter
 ├── routes/
-│   └── movies.js                # Definición de rutas
+│   ├── movies.js              # Rutas de películas
+│   ├── reviews.js             # Rutas de reviews
+│   └── stats.js               # Rutas de estadísticas
 ├── middlewares/
-│   ├── logger.js                # Logging con timestamp
-│   ├── errorHandler.js          # Manejo de errores
-│   └── notFound.js              # Rutas 404
+│   ├── logger.js              # Logging
+│   ├── responseTime.js        # Medición de tiempos
+│   ├── errorHandler.js        # Manejo de errores
+│   └── notFound.js            # Rutas 404
+├── lib/
+│   └── prisma.js              # Cliente Prisma
 ├── docs/
-│   └── swagger.yaml             # Documentación OpenAPI
-├── data/
-│   └── movies.js                # Base de datos (15 películas)
-├── index.js                     # Punto de entrada
-├── .env.example                 # Ejemplo de variables
-├── .gitignore                   # Archivos ignorados
-├── package.json                 # Configuración del proyecto
-└── README.md                    # Este archivo
+│   └── swagger.yaml           # Documentación OpenAPI
+├── ui/
+│   ├── src/
+│   │   ├── App.jsx            # Componente principal
+│   │   ├── components/
+│   │   │   └── Dashboard.jsx  # Dashboard de estadísticas
+│   │   └── main.jsx           # Entry point
+│   ├── package.json
+│   └── vite.config.js
+├── index.js                   # Servidor Express
+├── .env.example               # Ejemplo de variables
+├── package.json
+└── README.md
+```
+
+## 🗄️ Schema de Base de Datos
+
+```prisma
+enum Genre {
+  ACTION
+  COMEDY
+  DRAMA
+  HORROR
+  SCIFI
+  THRILLER
+}
+
+model Movie {
+  id        Int      @id @default(autoincrement())
+  title     String
+  year      Int
+  rating    Float
+  genre     Genre
+  poster    String?
+  reviews   Review[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  movieId   Int
+  author    String
+  rating    Int
+  comment   String
+  createdAt DateTime @default(now())
+}
 ```
 
 ## 🔑 Variables de Entorno
 
-Crea un archivo `.env` en la raíz del proyecto con:
-
 ```env
 PORT=3000
-OPENROUTER_API_KEY=tu-api-key-de-openrouter
+DATABASE_URL="postgresql://user:password@host:port/database?sslmode=require"
+OPENROUTER_API_KEY=tu-api-key-opcional
 ```
-
-**Nota:** Si no configuras `OPENROUTER_API_KEY`, el endpoint `/movies/discover` retornará películas sin enriquecimiento (`ai_enriched: null`).
 
 ## 🧪 Pruebas
 
-### Con curl:
+### Estadísticas
 ```bash
-# Listar todas las películas
-curl http://localhost:3000/movies
-
-# Filtrar por género
-curl http://localhost:3000/movies?genre=Crime
-
-# Obtener película por ID
-curl http://localhost:3000/movies/5
-
-# Descubrir con IA
-curl http://localhost:3000/movies/discover
+curl http://localhost:3000/stats
 ```
 
-### Con Swagger UI:
-1. Abre http://localhost:3000/docs
-2. Selecciona un endpoint
-3. Click en "Try it out"
-4. Click en "Execute"
+### Búsqueda avanzada
+```bash
+# Por título
+curl "http://localhost:3000/movies/search?q=matrix"
 
-## 🚢 Deploy en Render
+# Por género y rating
+curl "http://localhost:3000/movies/search?genre=SCIFI&ratingMin=8"
 
-### Configuración en Render:
+# Rango de años con paginación
+curl "http://localhost:3000/movies/search?yearMin=1990&yearMax=2000&page=1&limit=5"
 
-1. **Build Command:** `npm install`
-2. **Start Command:** `npm start`
-3. **Variables de entorno:**
-   - `OPENROUTER_API_KEY`: Tu API key de OpenRouter
-
-### URLs Configuradas:
-
-El archivo `docs/swagger.yaml` está configurado con:
-
-```yaml
-servers:
-  - url: http://localhost:3000
-    description: Desarrollo local
-  - url: https://movie-match-api-44vf.onrender.com
-    description: Producción
+# Todos los filtros combinados
+curl "http://localhost:3000/movies/search?q=the&genre=ACTION&yearMin=2000&ratingMin=8"
 ```
 
-## 🎯 Middlewares Implementados
+### Reviews
+```bash
+# Agregar review
+curl -X POST http://localhost:3000/movies/1/reviews \
+  -H "Content-Type: application/json" \
+  -d '{"author":"María","rating":5,"comment":"Obra maestra"}'
 
-### Logger
-Registra todas las peticiones con timestamp ISO:
-```
-[2026-01-15T19:30:40.045Z] GET /movies/1
+# Ver película con reviews
+curl http://localhost:3000/movies/1
 ```
 
-### Error Handler
-Captura y formatea todos los errores:
-```json
+### Logros adicionales
+```bash
+# Películas sin reviews
+curl http://localhost:3000/movies/without-reviews
+
+# Películas recientes (últimos 7 días)
+curl http://localhost:3000/movies/recent
+
+# Exportar datos
+curl http://localhost:3000/movies/export
+```
+
+## 🎨 UI React
+
+El dashboard incluye:
+- **Métricas principales:** Total de películas, reviews, rating promedio
+- **Top películas:** Mejor calificadas y más comentadas
+- **Distribución por género:** Gráficos de barras
+- **Actividad reciente:** Últimas 10 reviews
+
+### Capturas
+
+Dashboard muestra en tiempo real:
+- Cards con métricas clave
+- Rankings de películas
+- Gráficos por género
+- Feed de actividad
+
+## 🚢 Deploy
+
+### Backend en Render
+
+**Build Command:** `npm install && npx prisma generate`
+**Start Command:** `npm start`
+
+**Variables de entorno:**
+- `DATABASE_URL`: URL de PostgreSQL
+- `OPENROUTER_API_KEY`: API key opcional
+
+### Frontend en Vercel
+
+**Build Command:** `cd ui && npm install && npm run build`
+**Output Directory:** `ui/dist`
+
+## 🎯 Características Técnicas
+
+### Agregaciones Prisma
+```javascript
+// Ejecutadas en paralelo
+const [totalMovies, totalReviews, avgRating] = await Promise.all([
+  prisma.movie.count(),
+  prisma.review.count(),
+  prisma.movie.aggregate({ _avg: { rating: true } })
+]);
+```
+
+### Búsqueda Multi-Filtro
+```javascript
+const where = { AND: [] };
+if (q) where.AND.push({ title: { contains: q, mode: 'insensitive' } });
+if (genre) where.AND.push({ genre });
+if (yearMin || yearMax) where.AND.push({ year: { gte: yearMin, lte: yearMax } });
+```
+
+### Transacciones Atómicas
+```javascript
+await prisma.$transaction(async (tx) => {
+  await tx.review.deleteMany({ where: { movieId: id } });
+  await tx.movie.delete({ where: { id } });
+});
+```
+
+### Paginación
+```javascript
 {
-  "success": false,
-  "error": "Mensaje del error"
+  data: [...],
+  pagination: {
+    page: 1,
+    limit: 10,
+    total: 45,
+    pages: 5
+  }
 }
 ```
-
-### Not Found
-Maneja rutas inexistentes con 404:
-```json
-{
-  "success": false,
-  "error": "Ruta GET /ruta-inexistente no encontrada"
-}
-```
-
-## 📊 Base de Datos
-
-El proyecto incluye 15 películas clásicas:
-- The Shawshank Redemption (9.3)
-- The Godfather (9.2)
-- The Dark Knight (9.0)
-- Pulp Fiction (8.9)
-- Y más...
-
-Cada película contiene:
-- `id`: Identificador único
-- `title`: Título
-- `year`: Año de estreno
-- `genre`: Género
-- `director`: Director(es)
-- `rating`: Calificación (0-10)
-- `description`: Sinopsis
-- `ai_enriched`: Anécdota generada por IA (opcional)
 
 ## 👨‍💻 Autor
 
 **Jorge Gil**
 - GitHub: [@JGIL1982](https://github.com/JGIL1982)
-- Lab 12: Middleware, Documentación y Deploy
-- Enter Tech Code - Módulo 3: Backend Development
+- Lab 16: Dashboard + Advanced Queries
+- Enter Tech Code - Módulo 4: Backend + Database
 
 ## 📝 Licencia
 
@@ -264,4 +403,4 @@ ISC
 
 ---
 
-**Desarrollado como parte del Módulo 3: Backend Development**
+**Desarrollado como parte del Módulo 4: Backend Development con PostgreSQL y Prisma ORM**

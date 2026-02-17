@@ -5,6 +5,7 @@ import swaggerUi from 'swagger-ui-express';
 import YAML from 'yamljs';
 import moviesRouter from './routes/movies.js';
 import reviewsRouter from './routes/reviews.js';
+import statsRouter from './routes/stats.js';
 import { logger } from './middlewares/logger.js';
 import { responseTime } from './middlewares/responseTime.js';
 import { errorHandler } from './middlewares/errorHandler.js';
@@ -30,6 +31,7 @@ app.get('/health', (req, res) => {
   });
 });
 
+app.use(statsRouter);
 app.use('/movies', moviesRouter);
 app.use(reviewsRouter);
 
